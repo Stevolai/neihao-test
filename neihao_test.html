@@ -1,0 +1,231 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.wrap { padding: 1rem 0; }
+.progress-bar-bg { height: 3px; background: var(--color-border-tertiary); border-radius: 2px; margin-bottom: 1.5rem; }
+.progress-bar-fill { height: 3px; background: var(--color-text-secondary); border-radius: 2px; transition: width 0.4s ease; }
+.q-num { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+.q-text { font-size: 17px; font-weight: 500; color: var(--color-text-primary); line-height: 1.5; margin-bottom: 1.5rem; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.opt { padding: 14px 16px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); cursor: pointer; font-size: 15px; color: var(--color-text-primary); background: var(--color-background-primary); transition: all 0.15s; text-align: left; line-height: 1.4; }
+.opt:hover { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+.opt.selected { border-color: var(--color-text-primary); background: var(--color-background-secondary); }
+.nav { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+.btn { padding: 10px 20px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; cursor: pointer; background: transparent; color: var(--color-text-primary); }
+.btn:disabled { opacity: 0.3; cursor: default; }
+.btn-next { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+.result-wrap { padding: 1rem 0; }
+.result-score-label { font-size: 12px; color: var(--color-text-tertiary); letter-spacing: 0.05em; margin-bottom: 4px; }
+.result-score { font-size: 52px; font-weight: 500; color: var(--color-text-primary); line-height: 1; margin-bottom: 0.25rem; }
+.result-level { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
+.result-desc { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
+.dim-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.dim-card { padding: 12px; background: var(--color-background-secondary); border-radius: var(--border-radius-md); }
+.dim-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+.dim-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.dim-bar-bg { height: 3px; background: var(--color-border-tertiary); border-radius: 2px; margin-top: 6px; }
+.dim-bar-fill { height: 3px; border-radius: 2px; }
+.advice { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.advice-title { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 8px; letter-spacing: 0.05em; }
+.advice-text { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; }
+.retry-btn { width: 100%; padding: 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-lg); font-size: 15px; cursor: pointer; background: transparent; color: var(--color-text-secondary); }
+.ai-section { margin-bottom: 1.5rem; }
+.ai-label { font-size: 12px; color: var(--color-text-tertiary); letter-spacing: 0.05em; margin-bottom: 8px; }
+.ai-box { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; min-height: 80px; }
+.loading-dots::after { content: '...'; animation: dots 1.2s infinite; }
+@keyframes dots { 0%,20%{content:'.'} 40%,60%{content:'..'} 80%,100%{content:'...'} }
+.intro-wrap { padding: 1rem 0; }
+.intro-title { font-size: 26px; font-weight: 500; color: var(--color-text-primary); line-height: 1.3; margin-bottom: 0.75rem; }
+.intro-sub { font-size: 14px; color: var(--color-text-secondary); line-height: 1.7; margin-bottom: 2rem; }
+.intro-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 2rem; }
+.tag { font-size: 12px; color: var(--color-text-secondary); border: 0.5px solid var(--color-border-secondary); border-radius: 99px; padding: 4px 12px; }
+.start-btn { width: 100%; padding: 16px; background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-lg); font-size: 16px; font-weight: 500; cursor: pointer; }
+</style>
+
+<div class="wrap" id="app">
+<div class="intro-wrap" id="intro">
+  <p style="font-size:12px;color:var(--color-text-tertiary);letter-spacing:0.05em;margin-bottom:1rem">内耗指数测评</p>
+  <h1 class="intro-title">你到底<br>有多内耗？</h1>
+  <p class="intro-sub">15道题，3分钟，测出你的内耗程度<br>以及你最容易在哪里消耗自己</p>
+  <div class="intro-tags">
+    <span class="tag">阿德勒心理学</span>
+    <span class="tag">情绪分析</span>
+    <span class="tag">AI个性化解读</span>
+  </div>
+  <button class="start-btn" onclick="startTest()">开始测试</button>
+</div>
+</div>
+
+<script>
+const questions = [
+  { text: "做完一件事之后，你会反复回想"我是不是做得不够好"？", dim: "rumination",
+    opts: ["几乎不会，做完就放下了","偶尔会想想","经常会纠结一阵子","几乎每次都会反复想"] },
+  { text: "别人说了一句无心的话，你会在心里放多久？", dim: "sensitivity",
+    opts: ["当耳边风，转眼就忘","想一下就过去了","会记好几天，偶尔还想起来","可能会记很久，甚至影响我对那人的看法"] },
+  { text: "你有多少次因为"怕麻烦别人"而独自扛着？", dim: "boundary",
+    opts: ["我很少这样，需要帮助就开口","偶尔，但多数时候还是会说","经常，不到万不得已不开口","几乎每次，我习惯自己解决"] },
+  { text: "当你需要做一个决定，你通常会……", dim: "decision",
+    opts: ["想好大方向就行动","花一些时间分析，然后决定","反复权衡，担心选错","拖很久，甚至让别人帮我决定"] },
+  { text: "睡前你的脑子里通常在做什么？", dim: "rumination",
+    opts: ["什么都不想，很快入睡","偶尔回顾一下今天","经常在想今天做得对不对、明天怎么办","脑子停不下来，越想越睡不着"] },
+  { text: "别人对你的评价（包括批评）会影响你多久？", dim: "sensitivity",
+    opts: ["听一下，认为有用才参考","会想想，但很快恢复","影响我好几天，会反复想","会持续影响我，让我对自己产生怀疑"] },
+  { text: "你有多频繁觉得"我不够好"？", dim: "selfworth",
+    opts: ["很少，我对自己整体满意","偶尔有，但能调整过来","比较频繁，总觉得自己差点什么","几乎是常态，觉得自己哪哪都不够"] },
+  { text: "当你在等一个重要结果时（录取、面试、谈判），你通常……", dim: "anxiety",
+    opts: ["该干嘛干嘛，等消息就好","有点在意，但不影响生活","很难专注其他事，脑子里反复模拟结果","非常焦虑，吃不好睡不好"] },
+  { text: "和人发生矛盾或摩擦后，你会……", dim: "boundary",
+    opts: ["沟通清楚，或者放下就过了","心里不舒服，但能消化","反复想是不是自己的错，甚至主动道歉","很久都放不下，影响心情甚至回避对方"] },
+  { text: "你有多少时间用在"想象最坏的情况"上？", dim: "anxiety",
+    opts: ["几乎没有，我倾向乐观","偶尔担心，但理性能控制","经常这样，总要把坏情况都想一遍","几乎是习惯，什么事都会先往最坏想"] },
+  { text: "帮朋友做了一件事，如果对方没有表示感谢，你会……", dim: "selfworth",
+    opts: ["不在意，帮忙是我自己愿意的","有点在意，但不会说出来","心里会有落差，觉得自己付出不被看见","会难受很久，甚至开始怀疑这段关系"] },
+  { text: "面对一件很重要但很难开始的事，你通常……", dim: "decision",
+    opts: ["直接拆分步骤开始做","准备一段时间后开始","拖延，不断等一个"更好的状态"","一直拖，焦虑但就是迈不出第一步"] },
+  { text: "当你独处的时候，你的状态通常是……", dim: "rumination",
+    opts: ["放松，享受一个人的时间","平静，偶尔会发呆","容易胡思乱想，过去和未来都冒出来","很难真正放松，脑子一直在转"] },
+  { text: "你有多经常压抑自己真实的感受或需求？", dim: "boundary",
+    opts: ["很少，我会表达自己","偶尔，顾虑场合","经常，怕引起冲突或让别人失望","几乎习惯了，不知道怎么表达自己"] },
+  { text: "看完这15道题，你觉得……", dim: "awareness",
+    opts: ["我其实没什么内耗","有些题说中了我","好多题都在说我","看完有点难过，太准了"] }
+];
+
+const dimNames = { rumination:"反刍思维", sensitivity:"情绪敏感", boundary:"边界感", decision:"决策焦虑", selfworth:"自我价值", anxiety:"预期焦虑", awareness:"自我觉察" };
+
+let current = 0, answers = [], scores = {};
+
+function startTest() {
+  document.getElementById('intro').style.display = 'none';
+  renderQ();
+}
+
+function renderQ() {
+  const app = document.getElementById('app');
+  const q = questions[current];
+  const pct = Math.round((current / questions.length) * 100);
+  app.innerHTML = `
+    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+    <p class="q-num">${current + 1} / ${questions.length}</p>
+    <p class="q-text">${q.text}</p>
+    <div class="options" id="opts">
+      ${q.opts.map((o,i) => `<button class="opt${answers[current]===i?' selected':''}" onclick="select(${i})">${o}</button>`).join('')}
+    </div>
+    <div class="nav">
+      <button class="btn" onclick="prev()" ${current===0?'disabled':''}>上一题</button>
+      <button class="btn btn-next" id="nxt" onclick="next()" ${answers[current]===undefined?'disabled':''}>
+        ${current===questions.length-1?'查看结果':'下一题'}
+      </button>
+    </div>`;
+}
+
+function select(i) {
+  answers[current] = i;
+  document.querySelectorAll('.opt').forEach((o,idx)=>{ o.classList.toggle('selected', idx===i); });
+  document.getElementById('nxt').disabled = false;
+}
+
+function prev() { if(current>0){current--;renderQ();} }
+function next() {
+  if(answers[current]===undefined) return;
+  if(current<questions.length-1){current++;renderQ();}
+  else showResult();
+}
+
+function showResult() {
+  const dimScores = {};
+  questions.forEach((q,i) => { const d=q.dim; dimScores[d]=(dimScores[d]||0)+(answers[i]||0); });
+  const total = answers.reduce((a,b)=>a+(b||0),0);
+  const maxPossible = questions.length * 3;
+  const pct = Math.round((total / maxPossible) * 100);
+
+  let level, levelColor, desc, advice;
+  if(pct<=25){
+    level="低度内耗"; levelColor="#639922";
+    desc="你整体状态不错，能比较好地处理情绪、放下过去、专注当下。偶尔的反思和担忧是正常的，不会困住你太久。";
+    advice="继续保持觉察。留意那些偶尔出现的内耗模式，在它变成习惯之前及时调整。";
+  } else if(pct<=50){
+    level="中度内耗"; levelColor="#BA7517";
+    desc="你的内耗处于中等水平。有时候能放下，有时候又会陷进去。某些特定场景——比如关系、评价、决策——是你的敏感区。";
+    advice="找到你最容易内耗的1-2个维度，针对性地练习。不是要"不想"，而是学会更快地走出来。";
+  } else if(pct<=75){
+    level="高度内耗"; levelColor="#D85A30";
+    desc="你很容易陷入反复思考、担忧和自我怀疑的循环。这消耗了大量的精力，让你很难真正放松或专注。这不是你的错，这是大脑的一种习惯模式。";
+    advice="阿德勒心理学的核心洞察：你的很多内耗，来自承担了不属于你的课题。学会区分"这是我的事"还是"这是别人的事"，是突破的关键。";
+  } else {
+    level="重度内耗"; levelColor="#A32D2D";
+    desc="你长期处于高度内耗状态，脑子几乎停不下来。情绪敏感、自我批判、无法放松——这已经在影响你的睡眠、决策和关系。你需要认真对待这件事。";
+    advice="不要用意志力对抗内耗，越对抗越耗。先从小事开始练习"做完就放"。如果条件允许，和专业人士谈谈会有帮助。";
+  }
+
+  const topDims = Object.entries(dimScores)
+    .filter(([d])=>d!=='awareness')
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,4);
+
+  const app = document.getElementById('app');
+  app.innerHTML = `<div class="result-wrap">
+    <p class="result-score-label">内耗指数</p>
+    <p class="result-score">${pct}<span style="font-size:22px;color:var(--color-text-secondary)">%</span></p>
+    <p class="result-level" style="color:${levelColor}">${level}</p>
+    <p class="result-desc">${desc}</p>
+    <div class="dim-grid">
+      ${topDims.map(([d,s])=>{
+        const max = questions.filter(q=>q.dim===d).length*3||3;
+        const p = Math.round((s/max)*100);
+        return `<div class="dim-card">
+          <p class="dim-label">${dimNames[d]||d}</p>
+          <p class="dim-val">${p}%</p>
+          <div class="dim-bar-bg"><div class="dim-bar-fill" style="width:${p}%;background:${levelColor}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="advice">
+      <p class="advice-title">给你的一句话</p>
+      <p class="advice-text">${advice}</p>
+    </div>
+    <div class="ai-section">
+      <p class="ai-label">AI 深度解读</p>
+      <div class="ai-box" id="ai-box"><span class="loading-dots">分析中</span></div>
+    </div>
+    <button class="retry-btn" onclick="location.reload()">重新测试</button>
+  </div>`;
+
+  callAI(pct, level, topDims, dimScores);
+}
+
+async function callAI(pct, level, topDims, dimScores) {
+  const topStr = topDims.map(([d,s])=>{
+    const max = questions.filter(q=>q.dim===d).length*3||3;
+    return `${dimNames[d]||d}:${Math.round((s/max)*100)}%`;
+  }).join(', ');
+
+  const prompt = `用户做完了内耗程度测试，结果如下：
+内耗指数：${pct}%，等级：${level}
+最突出的维度：${topStr}
+
+请用200字以内，用温柔但直接的语气，给出个性化的心理洞察。
+要求：
+1. 点出他内耗的核心根源（结合阿德勒"课题分离"或荣格"影子"概念）
+2. 给一个具体可操作的小练习
+3. 用"你"来称呼用户
+不要用"首先""其次"列点，写成自然流动的段落。`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content?.find(b=>b.type==='text')?.text || '暂时无法获取AI解读。';
+    document.getElementById('ai-box').textContent = text;
+  } catch(e) {
+    document.getElementById('ai-box').textContent = '网络问题，AI解读暂时不可用。测试结果仍然有效。';
+  }
+}
+</script>
